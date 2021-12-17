@@ -1,0 +1,1 @@
+/home/a000680/Satsa/Skogsbrander/active_fire_evaluation/a76361a84b3f005840d09247711b40e4/read_active_fire_results.py
