@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -158,12 +158,16 @@ def get_cloudfraction(lons, lats, filename):
     scn = Scene(filenames=[filename], reader='nwcsaf-pps_nc')
     scn.load(['cma'])
 
-    start_time = scn.attrs['start_time']
-    end_time = scn.attrs['end_time']
+    try:
+        start_time = scn.attrs['start_time']
+        end_time = scn.attrs['end_time']
+    except KeyError:
+        start_time = scn.start_time
+        end_time = scn.end_time
 
-    if 'viirs' in scn.attrs['sensor']:
+    if 'viirs' in scn.sensor_names:
         pixels_per_scan = 16
-    elif 'avhrr-3' in scn.attrs['sensor'] or 'avhrr' in scn.attrs['sensor']:
+    elif 'avhrr-3' in scn.sensor_names or 'avhrr' in scn.sensor_names:
         pixels_per_scan = 1
     else:
         pixels_per_scan = 10

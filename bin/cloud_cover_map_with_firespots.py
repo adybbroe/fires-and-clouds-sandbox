@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -59,8 +59,10 @@ if __name__ == "__main__":
 
     start_time_txt = platform_name + ': ' + local_scn.start_time.strftime('%Y-%m-%d %H:%M')
     stime_fname = local_scn.start_time.strftime('%Y%m%d_%H%M')
-    output_filename = './cloudmask_{time}_{area}.png'.format(time=stime_fname,
-                                                             area=areaid)
+    # output_filename = './cloudmask_{time}_{area}.png'.format(time=stime_fname,
+    #                                                         area=areaid)
+    output_filename = './cloudmask_{time}_{area}_nofires.png'.format(time=stime_fname,
+                                                                     area=areaid)
 
     fire_point = {"type": "Feature",
                   "geometry": {"type": "Point", "coordinates": [22.897562, 66.573494]},
@@ -84,9 +86,9 @@ if __name__ == "__main__":
     local_scn.save_dataset('cma', filename=output_filename,
                            overlay={'coast_dir': '/home/a000680/data/shapes/',
                                     'overlays': {'coasts': coast,
-                                                 'borders': borders,
-                                                 # 'rivers': rivers,
-                                                 'points': points}},
+                                                 'borders': borders}},
+                           # 'rivers': rivers,
+                           # 'points': points}},
                            decorate={'decorate': [
                                {'logo': {'logo_path': SMHILOGO_BLACK,
                                          'height': 90, 'bg': 'white', 'bg_opacity': 120}},

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -27,6 +27,7 @@ import os
 from glob import glob
 from datetime import datetime
 from trollsift import Parser, globify
+import pytz
 
 from activefires_pp.post_processing import store_geojson
 from activefires_pp.utils import get_geometry_from_shapefile
@@ -41,7 +42,6 @@ INFILE_PATTERN = 'AFIMG_{platform:s}_d{start_time:%Y%m%d_t%H%M%S%f}_e{end_hour:%
 
 SHP_BOARDERS = "/home/a000680/data/shapes/Sverige/Sverige.shp"
 SHP_FILTERMASK = "/home/a000680/Satsa/Skogsbrander/tatorter/tatort_mb_ind_dissolve_man_edit.shp"
-GEOJSON_FILE = "/home/a000680/Satsa/Skogsbrander/Geojson/afimg_20210407_115811.geojson"
 
 BASEDIR = "/data/lang/satellit2/polar/viirs_active_fires/"
 
@@ -55,6 +55,7 @@ def viirs_afedr2geojson(edr_filepath, platform_name, outfile_pattern):
     af_shapeff = ActiveFiresShapefileFiltering(edr_filepath,
                                                platform_name=platform_name,
                                                timezone='Europe/Stockholm')
+
     afdata = af_shapeff.get_af_data(INFILE_PATTERN)
 
     af_shapeff.fires_filtering(SHP_BOARDERS)
@@ -82,14 +83,19 @@ if __name__ == "__main__":
     #fmda['platform'] = platform_name
     #filepath = viirs_afedr2geojson(TESTFILE, platform_name)
 
-    TSTART = datetime(2021, 8, 14)
-    TEND = datetime(2021, 11, 1)
+    TSTART = datetime(2021, 10, 30, 23, 58)
+    TEND = datetime(2022, 1, 10)
     edrlist = get_af_files(BASEDIR, TSTART, TEND, INFILE_PATTERN)
 
     p__ = Parser(INFILE_PATTERN)
     for edrfile in edrlist:
+        print(edrfile)
         res = p__.parse(os.path.basename(edrfile))
         platform_name = PLATFORMS.get(res['platform'])
-        filepath = viirs_afedr2geojson(edrfile, platform_name, outfile_pattern_national)
+        try:
+            filepath = viirs_afedr2geojson(edrfile, platform_name, outfile_pattern_national)
+        except pytz.exceptions.AmbiguousTimeError:
+            print("Could not convert file. Continue")
+
         if filepath:
             print("File created: %s" % filepath)

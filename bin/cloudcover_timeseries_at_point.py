@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -39,6 +39,7 @@ import numpy as np
 from datetime import datetime
 from fires_and_clouds.cloud_utils import PPSFilesGetter
 from fires_and_clouds.cloud_utils import get_cloudfraction
+from fires_and_clouds.utils import NRK
 
 AVHRR_MODIS_PPS_PATH = "/data/lang/satellit/polar/PPS_products/satproj/"
 VIIRS_PPS_PATH = "/data/lang/satellit2/polar/pps/"
@@ -48,16 +49,19 @@ if __name__ == "__main__":
     START = datetime(2021, 6, 11, 0)
     END = datetime(2021, 6, 12, 0)
 
-    #pps_file_getter = PPSFilesGetter(VIIRS_PPS_PATH, START, END)
+    pps_file_getter = PPSFilesGetter(VIIRS_PPS_PATH, START, END)
     #pps_file_getter.collect_product_files(platforms=['NOAA-20', 'Suomi-NPP'], product_name='CMA')
-    pps_file_getter = PPSFilesGetter(AVHRR_MODIS_PPS_PATH, START, END)
+    #pps_file_getter = PPSFilesGetter(AVHRR_MODIS_PPS_PATH, START, END)
     pps_file_getter.collect_product_files(product_name='CMA')
     total_num_of_files = len(pps_file_getter.pps_files['CMA'])
 
     # pps_file_getter.gather_granules('CMA')
 
-    LONS = [22.897562, ]
-    LATS = [66.573494, ]
+    #LONS = [22.897562, ]
+    #LATS = [66.573494, ]
+    LONS = [NRK[0], ]
+    LATS = [NRK[1], ]
+
     results = []
     nfiles_read = 0
     if pps_file_getter.granules:
@@ -83,8 +87,8 @@ if __name__ == "__main__":
     dtimes = [t[1] for t in results]
     clcov = [t[0] for t in results]
 
-    #filename = './cloud_cover_timeseries_viirs.csv'
-    filename = './cloud_cover_timeseries_avhrr_modis.csv'
+    filename = './cloud_cover_timeseries_viirs_norrkoping.csv'
+    #filename = './cloud_cover_timeseries_avhrr_modis.csv'
     with open(filename, 'w') as fpt:
         for res in results:
             fpt.write('%s, %f, %f\n' % (res[1], res[0], 1.0-res[0]))

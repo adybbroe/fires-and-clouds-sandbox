@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -32,7 +32,6 @@ from trollsched.satpass import Pass as overpass
 from pyorbital.orbital import Orbital
 from pyorbital import tlefile
 from trollsift import Parser, globify
-
 
 # Location = Longitude (deg), Latitude (deg), Altitude (km)
 NRK = (16.148649, 58.581844, 0.052765)
