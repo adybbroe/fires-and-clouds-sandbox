@@ -26,7 +26,7 @@
 
 from glob import glob
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from trollsched.satpass import Pass as overpass
 from pyorbital.orbital import Orbital
@@ -128,3 +128,46 @@ def create_pass(satname, instrument, starttime, endtime, tle_filename=None):
     cpass = overpass(satname, starttime, endtime, instrument=instrument, tle1=tle.line1, tle2=tle.line2)
 
     return cpass
+
+
+def get_af_files(base_dir, starttime, endtime, pattern):
+    """Get all VIIRS active fire result files in a time interval."""
+
+    p__ = Parser(pattern)
+
+    otime = starttime
+    subdirs = []
+    while otime < endtime + timedelta(days=32):
+        subdir = os.path.join(base_dir, otime.strftime('%Y/%m'))
+        if subdir not in subdirs:
+            subdirs.append(subdir)
+        otime = otime + timedelta(days=30)
+
+    flist = []
+    for sdir in subdirs:
+        flist = flist + glob(os.path.join(sdir, globify(pattern)))
+
+    flist = flist + glob(os.path.join(base_dir, globify(pattern)))
+
+    newflist = []
+    for fpath in flist:
+        fname = os.path.basename(fpath)
+        res = p__.parse(fname)
+
+        stime = res['start_time']
+        year = stime.year
+        month = stime.month
+        day = stime.day
+        ehour = res['end_hour']
+        etime = datetime(year, month, day, ehour.hour, ehour.minute,
+                         ehour.second, ehour.microsecond)
+
+        if etime < stime:
+            etime = etime + timedelta(days=1)
+
+        if etime < starttime or stime > endtime:
+            continue
+
+        newflist.append(fpath)
+
+    return newflist

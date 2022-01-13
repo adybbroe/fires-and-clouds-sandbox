@@ -39,6 +39,7 @@ import numpy as np
 from datetime import datetime
 from fires_and_clouds.cloud_utils import PPSFilesGetter
 from fires_and_clouds.cloud_utils import get_cloudfraction
+from fires_and_clouds.cloud_utils import get_satname_from_files
 from fires_and_clouds.utils import NRK
 
 AVHRR_MODIS_PPS_PATH = "/data/lang/satellit/polar/PPS_products/satproj/"
@@ -46,49 +47,59 @@ VIIRS_PPS_PATH = "/data/lang/satellit2/polar/pps/"
 
 if __name__ == "__main__":
 
-    START = datetime(2021, 6, 11, 0)
-    END = datetime(2021, 6, 12, 0)
+    #START = datetime(2021, 6, 11, 0)
+    #END = datetime(2021, 6, 12, 0)
+    START = datetime(2021, 7, 26, 0)
+    END = datetime(2021, 7, 29, 0)
 
     pps_file_getter = PPSFilesGetter(VIIRS_PPS_PATH, START, END)
     #pps_file_getter.collect_product_files(platforms=['NOAA-20', 'Suomi-NPP'], product_name='CMA')
     #pps_file_getter = PPSFilesGetter(AVHRR_MODIS_PPS_PATH, START, END)
     pps_file_getter.collect_product_files(product_name='CMA')
     total_num_of_files = len(pps_file_getter.pps_files['CMA'])
+    print("Total number of cma files: %d" % total_num_of_files)
 
-    # pps_file_getter.gather_granules('CMA')
+    pps_file_getter.gather_granules('CMA')
+    total_num_of_scenes = len(pps_file_getter.pps_files['CMA'])
+    print("Total number of scenes: %d" % total_num_of_scenes)
 
-    #LONS = [22.897562, ]
-    #LATS = [66.573494, ]
-    LONS = [NRK[0], ]
-    LATS = [NRK[1], ]
+    # LONS = [22.897562, ] # Fire pixel 12 June, 2021
+    # LATS = [66.573494, ] # Fire pixel 12 June, 2021
+    LONS = [18.3244, ]  # Fire pixel 28 July, 2021, Lycksele
+    LATS = [64.8210, ]  # Fire pixel 28 July, 2021, Lycksele
+    #LONS = [NRK[0], ]
+    #LATS = [NRK[1], ]
 
     results = []
     nfiles_read = 0
     if pps_file_getter.granules:
         for granule_collection in pps_file_getter.pps_files['CMA']:
             for cmafile in pps_file_getter.pps_files['CMA'][granule_collection]:
-
                 cloud_cover, otimes = get_cloudfraction(LONS, LATS, cmafile)
                 nfiles_read = nfiles_read + 1
                 if not np.isnan(cloud_cover[0]):
-                    results.append((cloud_cover[0], otimes[0]))
-                    print("===> Result found: %f %s" % (cloud_cover[0], str(otimes[0])))
+                    platform_name = get_satname_from_files([cmafile])
+                    results.append((cloud_cover[0], otimes[0], platform_name))
+                    print("===> Result found: %f %s %s" % (cloud_cover[0], str(otimes[0]), platform_name))
                     break
     else:
         for cmafile in pps_file_getter.pps_files['CMA']:
             cloud_cover, otimes = get_cloudfraction(LONS, LATS, cmafile)
             nfiles_read = nfiles_read + 1
             if not np.isnan(cloud_cover[0]):
-                results.append((cloud_cover[0], otimes[0]))
-                print("===> Result found: %f %s" % (cloud_cover[0], str(otimes[0])))
+                platform_name = get_satname_from_files([cmafile])
+                results.append((cloud_cover[0], otimes[0], platform_name))
+                print("===> Result found: %f %s %s" % (cloud_cover[0], str(otimes[0]), platform_name))
 
     print("%d files read out of %d" % (nfiles_read, total_num_of_files))
 
-    dtimes = [t[1] for t in results]
-    clcov = [t[0] for t in results]
+    #dtimes = [t[1] for t in results]
+    #clcov = [t[0] for t in results]
 
-    filename = './cloud_cover_timeseries_viirs_norrkoping.csv'
+    filename = './cloud_cover_timeseries_viirs_firepoint_july28.csv'
+    #filename = './cloud_cover_timeseries_viirs_norrkoping.csv'
+    #filename = './cloud_cover_timeseries_avhrr_modis_norrkoping.csv'
     #filename = './cloud_cover_timeseries_avhrr_modis.csv'
     with open(filename, 'w') as fpt:
         for res in results:
-            fpt.write('%s, %f, %f\n' % (res[1], res[0], 1.0-res[0]))
+            fpt.write('%s, %f, %f, %s\n' % (res[1], res[0], 1.0-res[0], res[2]))

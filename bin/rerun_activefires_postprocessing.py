@@ -33,7 +33,7 @@ from activefires_pp.post_processing import store_geojson
 from activefires_pp.utils import get_geometry_from_shapefile
 from activefires_pp.post_processing import ActiveFiresShapefileFiltering
 
-from read_active_fire_results import get_af_files
+from fires_and_clouds.utils import get_af_files
 
 
 TESTFILE = "/data/lang/satellit2/polar/viirs_active_fires/2021/04/AFIMG_j01_d20210407_t1158114_e1159359_b17538_c20210407121305204588_cspp_dev.txt"
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     #fmda['platform'] = platform_name
     #filepath = viirs_afedr2geojson(TESTFILE, platform_name)
 
-    TSTART = datetime(2021, 10, 30, 23, 58)
-    TEND = datetime(2022, 1, 10)
+    TSTART = datetime(2022, 1, 10, 0)
+    TEND = datetime(2022, 1, 13, 0)
     edrlist = get_af_files(BASEDIR, TSTART, TEND, INFILE_PATTERN)
 
     p__ = Parser(INFILE_PATTERN)

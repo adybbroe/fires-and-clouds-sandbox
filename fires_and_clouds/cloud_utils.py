@@ -114,11 +114,11 @@ class PPSFilesGetter(object):
             subdir = os.path.join(self.basedir, otime.strftime('%Y/%m/%d'))
             if subdir not in subdirs:
                 subdirs.append(subdir)
-            otime = otime + timedelta(days=30)
+            otime = otime + timedelta(days=1)
 
         flist = []
         for sdir in subdirs:
-            flist = flist + glob(os.path.join(subdir, globify(self.pattern, {'product': product_name})))
+            flist = flist + glob(os.path.join(sdir, globify(self.pattern, {'product': product_name})))
 
         newflist = []
         for fpath in flist:
@@ -286,7 +286,7 @@ class LastCloudfreeView(object):
 
         return lons, lats, time_data
 
-    def plot_data(self, filename):
+    def plot_data(self, filename, max_minutes=720):
 
         #cmap = cm.YlGn
         #cmaplist = [cmap(i) for i in range(cmap.N)]
@@ -319,7 +319,7 @@ class LastCloudfreeView(object):
         plt.imshow(self.relative_obstimes, transform=self._crs,
                    extent=self._crs.bounds, interpolation='nearest',
                    origin='upper', cmap=mycmap)
-        plt.clim(0, 720)
+        plt.clim(0, max_minutes)
         cbar = plt.colorbar()
         cbar.set_label("Minutes")
         # ax.tick_params(axis=u'both', which=u'both',length=0) # Not tested!

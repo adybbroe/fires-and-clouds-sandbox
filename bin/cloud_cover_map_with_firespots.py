@@ -30,7 +30,8 @@ from fires_and_clouds.cloud_utils import get_cloudmask_scene
 from fires_and_clouds.cloud_utils import get_satname_from_files
 
 # Polar cloud products:
-VIIRS_DATADIR = "/data/lang/satellit2/polar/pps/2021/06/11"
+#VIIRS_DATADIR = "/data/lang/satellit2/polar/pps/2021/06/11"
+VIIRS_DATADIR = "/data/lang/satellit2/polar/pps/2021/07/28"
 AVHRR_MODIS_DATADIR = "/data/lang/satellit/polar/PPS_products/satproj/2021/06/11"
 
 SMHILOGO = "/home/a000680/data/logos/SMHIlogotypevitRGB8mm.png"
@@ -44,7 +45,9 @@ if __name__ == "__main__":
     #ppsfiles = glob(os.path.join(AVHRR_MODIS_DATADIR, "S_NWC_CMA_metopb*20210611T09*nc"))
     #ppsfiles = glob(os.path.join(AVHRR_MODIS_DATADIR, "S_NWC_CMA_noaa19*20210611T09*nc"))
 
-    ppsfiles = glob(os.path.join(VIIRS_DATADIR, "S_NWC_CMA_noaa20*20210611T11*nc"))
+    #ppsfiles = glob(os.path.join(VIIRS_DATADIR, "S_NWC_CMA_noaa20*20210611T11*nc"))
+    ppsfiles = glob(os.path.join(VIIRS_DATADIR, "S_NWC_CMA_noaa20*20210728T115*nc"))
+    ppsfiles = ppsfiles + glob(os.path.join(VIIRS_DATADIR, "S_NWC_CMA_noaa20*20210728T120*nc"))
 
     platform_name = get_satname_from_files(ppsfiles)
 
@@ -59,16 +62,22 @@ if __name__ == "__main__":
 
     start_time_txt = platform_name + ': ' + local_scn.start_time.strftime('%Y-%m-%d %H:%M')
     stime_fname = local_scn.start_time.strftime('%Y%m%d_%H%M')
-    # output_filename = './cloudmask_{time}_{area}.png'.format(time=stime_fname,
-    #                                                         area=areaid)
-    output_filename = './cloudmask_{time}_{area}_nofires.png'.format(time=stime_fname,
-                                                                     area=areaid)
+    output_filename = './cloudmask_{time}_{area}.png'.format(time=stime_fname,
+                                                             area=areaid)
+    # output_filename = './cloudmask_{time}_{area}_nofires.png'.format(time=stime_fname,
+    #                                                                 area=areaid)
+
+    # fire_point = {"type": "Feature",
+    #               "geometry": {"type": "Point", "coordinates": [22.897562, 66.573494]},
+    #               "properties": {"power": 4.39215326, "tb": 330.76779175,
+    #                              "observation_time": "2021-06-11T12:51:07",
+    #                              "platform_name": "Suomi-NPP"}}
 
     fire_point = {"type": "Feature",
-                  "geometry": {"type": "Point", "coordinates": [22.897562, 66.573494]},
-                  "properties": {"power": 4.39215326, "tb": 330.76779175,
-                                 "observation_time": "2021-06-11T12:51:07",
-                                 "platform_name": "Suomi-NPP"}}
+                  "geometry": {"type": "Point", "coordinates": [18.333946, 64.814865]},
+                  "properties": {"power": 2.45683765, "tb": 329.21725464,
+                                 "confidence": 8, "observation_time": "2021-07-28T14:00:31.100000+02:00",
+                                 "platform_name": "NOAA-20"}}
 
     poi_list = [(fire_point['geometry']['coordinates'], '%5.2f' % fire_point['properties']['power']), ]
     points = {'font': FONTS, 'font_size': 48,
@@ -86,9 +95,9 @@ if __name__ == "__main__":
     local_scn.save_dataset('cma', filename=output_filename,
                            overlay={'coast_dir': '/home/a000680/data/shapes/',
                                     'overlays': {'coasts': coast,
-                                                 'borders': borders}},
-                           # 'rivers': rivers,
-                           # 'points': points}},
+                                                 'borders': borders,
+                                                 # 'rivers': rivers,
+                                                 'points': points}},
                            decorate={'decorate': [
                                {'logo': {'logo_path': SMHILOGO_BLACK,
                                          'height': 90, 'bg': 'white', 'bg_opacity': 120}},

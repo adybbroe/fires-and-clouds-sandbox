@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2021 Adam.Dybbroe
+# Copyright (c) 2021, 2022 Adam.Dybbroe
 
 # Author(s):
 
@@ -67,8 +67,10 @@ AREA_DEF_FILE = "/home/a000680/usr/src/pytroll-config/etc/areas.yaml"
 
 if __name__ == "__main__":
 
-    START = datetime(2021, 6, 11, 0)
-    END = datetime(2021, 6, 11, 12)
+    # START = datetime(2021, 6, 11, 0)
+    # END = datetime(2021, 6, 11, 12)
+    START = datetime(2021, 7, 26, 0)
+    END = datetime(2021, 7, 28, 12)
 
     pps_file_getter = PPSFilesGetter(PPS_DIR, START, END)
     pps_file_getter.collect_product_files(product_name='CMA')
@@ -76,7 +78,8 @@ if __name__ == "__main__":
 
     sceneslist = list(pps_file_getter.pps_files['CMA'].keys())
 
-    start_time = datetime(2021, 6, 11, 12, 0)
+    # start_time = datetime(2021, 6, 11, 12, 0)
+    start_time = END
 
     myobj = LastCloudfreeView(AREAID, start_time)
 
@@ -93,14 +96,18 @@ if __name__ == "__main__":
         lon, lat, time_data = myobj.get_scene_times_cloudfree_view(cmask)
         result = myobj.map_data(lon, lat, time_data)
         myobj.set_time_dataset(result)
-        myobj.plot_data('./minutes_since_last_cloudfree_view_{}.png'.format(pps_scene))
+        filename = './minutes_since_last_cloudfree_view_from_{starttime}_{scene}.png'.format(starttime=start_time.strftime('%Y%m%d_%H%M'),
+                                                                                             scene=pps_scene)
 
-    #img = Image(myobj.relative_obstimes, mode="L", fill_value=None)
-    #ylgnbu.set_range(32, 42)
+        # myobj.plot_data(filename, max_minutes=60*60)  # 60 hours = 2.5 days
+        myobj.plot_data(filename, max_minutes=60*24)  # 24 hours
+
+    # img = Image(myobj.relative_obstimes, mode="L", fill_value=None)
+    # ylgnbu.set_range(32, 42)
     # img.colorize(ylgnbu)
     # img.show()
 
-    #plot_data(myobj.relative_obstimes, myobj._crs, './minutes_since_last_cloudfree_view_1.png')
+    # plot_data(myobj.relative_obstimes, myobj._crs, './minutes_since_last_cloudfree_view_1.png')
 
-    #img = myobj.create_image()
+    # img = myobj.create_image()
     # img.show()

@@ -30,7 +30,7 @@ import matplotlib.dates as mdates
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from fires_and_clouds.utils import (find_actual_tlefile, get_sats_within_horizon)
+from fires_and_clouds.utils import find_actual_tlefile
 from pyorbital.orbital import Orbital
 from pyorbital import astronomy
 from pyorbital.orbital import get_observer_look
@@ -38,11 +38,12 @@ from pyorbital.orbital import get_observer_look
 from fires_and_clouds.satellite_scanning_geometry import convert_angles_zenith2scan
 from fires_and_clouds.utils import NRK
 
-
-LONS = [22.897562, ]
-LATS = [66.573494, ]
 #LONS = [NRK[0], ]
 #LATS = [NRK[1], ]
+# LONS = [22.897562, ] # Fire pixel 12 June, 2021
+# LATS = [66.573494, ] # Fire pixel 12 June, 2021
+LONS = [18.3244, ]  # Fire pixel 28 July, 2021, Lycksele
+LATS = [64.8210, ]  # Fire pixel 28 July, 2021, Lycksele
 
 
 def dt64_to_datetime(dt64):
@@ -61,22 +62,23 @@ def get_utc_times(pandas_df):
     return utc_times
 
 
-def get_sensor_scan_angles(lons, lats, obstimes, tle_filename):
+def get_sensor_scan_angles(lons, lats, obstimes, satnames, tle_filename):
     """Get the satellite sensor viewing geometry at a given location and time."""
 
     angles = []
-    for obs_time in obstimes:
-        for satname in ['NOAA-20', 'Suomi-NPP']:
-            satorb = Orbital(satname, tle_file=tle_filename)
-            sata, satel = satorb.get_observer_look(obs_time, lons, lats, 0)
-            if satel > 0:
-                break
+    for (obs_time, satname) in zip(obstimes, satnames):
+        satorb = Orbital(satname.strip(), tle_file=tle_filename)
+        _, satel = satorb.get_observer_look(obs_time, lons, lats, 0)
+
+        satel = satel[0]
+        if satel < 0:
+            raise ValueError("Something wrong - satellite under horizon!")
 
         # Get longitude, latitude and altitude of the satellite:
         satpos = satorb.get_lonlatalt(obs_time)
 
         satz = 90 - satel
-        scan_angle = convert_angles_zenith2scan(satz, satpos[2])[0]
+        scan_angle = convert_angles_zenith2scan(satz, satpos[2])
         print(satz, scan_angle)
 
         angles.append(scan_angle)
@@ -86,17 +88,22 @@ def get_sensor_scan_angles(lons, lats, obstimes, tle_filename):
 
 if __name__ == "__main__":
 
+    filename = "./cloud_cover_timeseries_viirs_firepoint_july28.csv"
     #filename = './cloud_cover_timeseries_viirs_norrkoping.csv'
-    filename = './cloud_cover_timeseries_viirs.csv'
+    #filename = './cloud_cover_timeseries_viirs.csv'
+    #filename = './cloud_cover_timeseries_avhrr_modis.csv'
+    #filename = './cloud_cover_timeseries_avhrr_modis_norrkoping.csv'
 
     df = pd.read_csv(filename, parse_dates=['obstime'], index_col=['obstime'],
-                     names=['obstime', 'cloud_cov', 'fraction_cloudfree'])
+                     names=['obstime', 'cloud_cov', 'fraction_cloudfree', 'platform_name'])
 
     utc_times = get_utc_times(df)
 
     tlefile = find_actual_tlefile(utc_times[0])
 
-    sat_scan_angles = get_sensor_scan_angles(LONS, LATS, df.index.values, tlefile)
+    sat_scan_angles = get_sensor_scan_angles(LONS, LATS,
+                                             df.index.values,
+                                             df['platform_name'], tlefile)
 
     #np_tobj = df.index.values[0]
     #utc_time = dt64_to_datetime(np_tobj)
@@ -112,7 +119,7 @@ if __name__ == "__main__":
     clear_color = (0.1, 0.3, 0.8, 0.8)
 
     days = mdates.DayLocator()
-    hours = mdates.HourLocator()
+    hours = mdates.HourLocator(interval=3)
     dfmt = mdates.DateFormatter('%H:%M')
 
     #
@@ -158,11 +165,14 @@ if __name__ == "__main__":
     position = "(%4.1f,%4.1f)" % (LONS[0], LATS[0])
     ax0.set(xlabel="Observation time",
             ylabel="Cloud cover fraction",
+            # title="Cloud cover fraction over one day from AVHRR/MODIS at Norrköping")
+            # title="Cloud cover fraction over one day from AVHRR/MODIS at {point}".format(point=position))
             # title="Cloud cover fraction over one day from AVHRR/MODIS at a given point")
             # title="Cloud cover fraction over one day from VIIRS at a given point")
             title="Cloud cover fraction over one day from VIIRS at {point}".format(point=position))
     # title="Cloud cover fraction over one day from VIIRS at Norrköping")
-    ax0.set_xlim((datetime(2021, 6, 11, 0), datetime(2021, 6, 12, 0)))
+    #ax0.set_xlim((datetime(2021, 6, 11, 0), datetime(2021, 6, 12, 0)))
+    ax0.set_xlim((datetime(2021, 7, 26, 0), datetime(2021, 7, 28, 14)))
     ax0.xaxis_date()
     ax0.legend(loc='upper right')
 
@@ -175,5 +185,8 @@ if __name__ == "__main__":
 
     fig.autofmt_xdate()
     plt.subplots_adjust(hspace=.0)
-    plt.savefig('./cloudcover_time_series_viirs_newcolors_with_daynight.png')
+    # plt.savefig('./cloudcover_time_series_avhrr_modis_newcolors_with_daynight_norrkoping.png')
+    # plt.savefig('./cloudcover_time_series_avhrr_modis_newcolors_with_daynight.png')
+    # plt.savefig('./cloudcover_time_series_viirs_newcolors_with_daynight.png')
     # plt.savefig('./cloudcover_time_series_viirs_newcolors_with_daynight_norrkoping.png')
+    plt.savefig('./cloudcover_time_series_viirs_newcolors_with_daynight_firepoint_july28.png')
